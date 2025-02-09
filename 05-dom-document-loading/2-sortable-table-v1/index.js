@@ -74,7 +74,7 @@ export default class SortableTable {
       if (sortType === 'number') {
         return direction * (a[field] - b[field]);
       } 
-      return direction * a[field].localeCompare(b[field]);
+      return direction * a[field].localeCompare(b[field], ['ru', 'en'], { caseFirst: 'upper' });
     });
     
     this.subElements.body.innerHTML = this.createItemsTemplate(this.data);

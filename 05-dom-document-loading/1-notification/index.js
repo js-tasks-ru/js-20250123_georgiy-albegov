@@ -35,7 +35,7 @@ export default class NotificationMessage {
 
         targetElement.append(this.element);
 
-        setTimeout(() => {
+        this.timerId = setTimeout(() => {
             this.remove();
         }, this.duration);
     }
@@ -54,6 +54,7 @@ export default class NotificationMessage {
 
     destroy() {
         this.remove();
+        clearTimeout(this.timerId);
         NotificationMessage.lastShownMessage = null;
     }
 }
