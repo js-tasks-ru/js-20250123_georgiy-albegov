@@ -70,7 +70,7 @@ export default class SortableTable {
     const sortType = column.sortType;
     const direction = order === 'asc' ? 1 : -1;
 
-    this.data = this.data.sort((a, b) => {
+    this.data = [...this.data].sort((a, b) => {
       if (sortType === 'number') {
         return direction * (a[field] - b[field]);
       } 
