@@ -4,12 +4,12 @@
  * @returns {function} - function-getter which allow get value from object by set path
  */
 export function createGetter(path) {
-    const fields = path.split('.');
+  const fields = path.split('.');
 
-    return function (obj) {
-        if (Object.keys(obj).length === 0) return undefined;
-        return fields.reduce((acc, part) => {
-            return acc && acc[part];
-        }, obj);
-    };
+  return function (obj) {
+    if (Object.keys(obj).length === 0) {return undefined;}
+    return fields.reduce((acc, part) => {
+      return acc && acc[part];
+    }, obj);
+  };
 }

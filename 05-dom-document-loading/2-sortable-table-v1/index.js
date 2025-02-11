@@ -14,17 +14,17 @@ export default class SortableTable {
 
   createItemsTemplate() {
     return this.data.map(item => {
-        return `
+      return `
           <a href="/products/${item.id}" class="sortable-table__row">
             ${this.headerConfig.map(({ id, template }) => {
-              if (template) {
-                return template(item[id]);
-              }
-              return `<div class="sortable-table__cell">${item[id]}</div>`;
-            }).join('')}
+    if (template) {
+      return template(item[id]);
+    }
+    return `<div class="sortable-table__cell">${item[id]}</div>`;
+  }).join('')}
           </a>
         `;
-      }).join('');
+    }).join('');
   }
 
   createHeaderConfigTemplate() {
