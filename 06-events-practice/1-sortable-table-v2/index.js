@@ -53,12 +53,12 @@ export default class SortableTableV2 extends SortableTable {
 
   createListeners() {
     const header = this.subElements.header;
-    header.addEventListener('click', this.handleHeaderCellClick);
+    header.addEventListener('pointerdown', this.handleHeaderCellClick);
   }
 
   destroyListeners() {
     const header = this.subElements.header;
-    header.removeEventListener('click', this.handleHeaderCellClick);
+    header.removeEventListener('pointerdown', this.handleHeaderCellClick);
   }
 
   destroy() {
