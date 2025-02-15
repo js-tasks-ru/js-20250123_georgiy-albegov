@@ -9,6 +9,7 @@ export default class SortableTableV2 extends SortableTable {
     }
   } = {}) {
     super(headersConfig, data); 
+    this.isSortLocally = true;
     this.sorted = sorted;
     this.sort(this.sorted.id, this.sorted.order);
     this.createArrowElement();
@@ -45,10 +46,26 @@ export default class SortableTableV2 extends SortableTable {
     const sortOrder = cellElement.dataset.order === 'asc' ? 'desc' : 'asc';
     cellElement.dataset.order = sortOrder;
 
-    this.sort(sortField, sortOrder);
-
     cellElement.append(this.arrowElement);
+
+    this.sort(sortField, sortOrder);
   };
+
+  sort(field, order) {
+    if (this.isSortLocally) {
+      this.sortOnClient(field, order);
+    } else {
+      this.sortOnServer();
+    }
+  }
+
+  sortOnClient(field, order) {
+    super.sort(field, order);
+  }
+
+  sortOnServer() {
+    // TODO
+  }
   
 
   createListeners() {
