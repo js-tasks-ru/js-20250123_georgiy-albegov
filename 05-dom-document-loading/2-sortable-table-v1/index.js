@@ -14,17 +14,17 @@ export default class SortableTable {
 
   createItemsTemplate() {
     return this.data.map(item => {
-        return `
-          <a href="/products/${item.id}" class="sortable-table__row">
-            ${this.headerConfig.map(({ id, template }) => {
-              if (template) {
-                return template(item[id]);
-              }
-              return `<div class="sortable-table__cell">${item[id]}</div>`;
-            }).join('')}
-          </a>
-        `;
-      }).join('');
+      return `
+        <a href="/products/${item.id}" class="sortable-table__row">
+          ${this.headerConfig.map(({ id, template }) => {
+            if (template) {
+              return template(item[id]);
+            }
+            return `<div class="sortable-table__cell">${item[id]}</div>`;
+          }).join('')}
+        </a>
+      `;
+    }).join('');
   }
 
   createHeaderConfigTemplate() {
@@ -64,13 +64,16 @@ export default class SortableTable {
     return result;
   }
 
-  sort(field, order) {
-    const column = this.headerConfig.find(item => item.id === field);
+  sort(field, order = 'desc') {
+    const {sortable, sortType} = this.headerConfig.find(item => item.id === field);
+    
+    if (!sortable) {
+      return;
+    }
 
-    const sortType = column.sortType;
     const direction = order === 'asc' ? 1 : -1;
 
-    this.data = [...this.data].sort((a, b) => {
+    this.data = this.data.sort((a, b) => {
       if (sortType === 'number') {
         return direction * (a[field] - b[field]);
       } 
