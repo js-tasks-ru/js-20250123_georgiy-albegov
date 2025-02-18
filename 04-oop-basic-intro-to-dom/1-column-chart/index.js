@@ -72,6 +72,9 @@ export default class ColumnChart {
 
     update(newData) {
       this.data = newData;
+      this.element.className = this.creteChartClasses();
+      this.value = this.data.reduce((sum, current) => sum + current, 0);
+      this.element.querySelector('[data-element="header"]').textContent = this.formatHeading(this.value);
       this.element.querySelector('[data-element="body"]').innerHTML = this.createChartTemplate();
     }
 
@@ -82,6 +85,4 @@ export default class ColumnChart {
     remove() {
       this.element.remove();
     }
-
-
 }
