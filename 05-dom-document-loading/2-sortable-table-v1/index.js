@@ -1,91 +1,134 @@
 export default class SortableTable {
+  element;
+  subElements = {};
+
   constructor(headerConfig = [], data = []) {
     this.headerConfig = headerConfig;
     this.data = data;
-    this.element = this.createElement();
-    this.subElements = this.getSubElements(); 
+    this.element = this.createElement(this.createTableTemplate());
+    this.selectSubElements();
+    this.createArrowElement();
   }
 
-  createElement() {
+  selectSubElements() {
+    this.element.querySelectorAll('[data-element]').forEach(element => {
+      this.subElements[element.dataset.element] = element;
+    });
+  }
+
+  createElement(template) {
     const element = document.createElement('div');
-    element.innerHTML = this.createBaseTemplate();
+    element.innerHTML = template;
+
     return element.firstElementChild;
   }
 
-  createItemsTemplate() {
-    return this.data.map(item => {
-      return `
-        <a href="/products/${item.id}" class="sortable-table__row">
-          ${this.headerConfig.map(({ id, template }) => {
-            if (template) {
-              return template(item[id]);
-            }
-            return `<div class="sortable-table__cell">${item[id]}</div>`;
-          }).join('')}
-        </a>
-      `;
-    }).join('');
-  }
-
-  createHeaderConfigTemplate() {
-    return this.headerConfig.map(({ id, title, sortable }) => {
-      return `
-        <div class="sortable-table__cell" data-id="${id}" data-sortable="${sortable}">
-          <span>${title}</span>
-        </div>
-      `;
-    }).join('');
-  }
-
-  createBaseTemplate() {
+  createTableTemplate() {
     return `
-      <div data-element="productsContainer" class="products-list__container">
-        <div class="sortable-table">
-          <div data-element="header" class="sortable-table__header sortable-table__row">
-            ${this.createHeaderConfigTemplate()}
-          </div>
-          <div data-element="body" class="sortable-table__body">
-            ${this.createItemsTemplate()}
+      <div class="sortable-table">
+        <div data-element="header" class="sortable-table__header sortable-table__row">
+          ${this.createHeaderTemplate(this.headerConfig)}
+        </div>
+        <div data-element="body" class="sortable-table__body">
+          ${this.createBodyTemplate(this.data)}
+        </div>
+        <div data-element="loading" class="loading-line sortable-table__loading-line"></div>
+        <div data-element="emptyPlaceholder" class="sortable-table__empty-placeholder">
+          <div>
+            <p>No products satisfies your filter criteria</p>
+            <button type="button" class="button-primary-outline">Reset all filters</button>
           </div>
         </div>
       </div>
     `;
   }
 
-  getSubElements() {
-    const result = {};
-    const elements = this.element.querySelectorAll('[data-element]');
-
-    for (const subElement of elements) {
-      const name = subElement.dataset.element;
-      result[name] = subElement;
-    }
-
-    return result;
+  createHeaderTemplate(headerConfig) {
+    return `
+      ${headerConfig.map(({id, title, sortable}) => this.createHeaderCellTemplate(id, title, sortable)).join('')}
+    `;
   }
 
-  sort(field, order = 'desc') {
-    const {sortable, sortType} = this.headerConfig.find(item => item.id === field);
+  createHeaderCellTemplate(id, title, sortable) {
+    return `
+      <div class="sortable-table__cell" data-id="${id}" data-sortable="${sortable}">
+        <span>${title}</span>
+      </div>
+    `;
+  }
+
+  createArrowElement() {
+    const headerCellArrowTemplate = `
+      <span data-element="arrow" class="sortable-table__sort-arrow">
+        <span class="sort-arrow"></span>
+      </span>
+    `;
+
+    const element = document.createElement('div');
+    element.innerHTML = headerCellArrowTemplate;
+    this.arrowElement = element.firstElementChild;
+  }
+
+  createBodyTemplate(data) {
+    return `
+      ${data.map((item) => this.createBodyRowTemplate(item)).join('')}
+    `;
+  }
+
+  createBodyRowTemplate(item) {
+    return `
+      <a href="#" class="sortable-table__row">
+        ${this.createBodyCellTemplate(item)}
+      </a>
+    `;
+  }
+
+  createBodyCellTemplate(dataItem) {
+    return this.headerConfig.map(({id, template}) => {
+      return template ? `${template(dataItem[id])}` : `<div class="sortable-table__cell">${dataItem[id]}</div>`;
+    }).join('');
+  }
+
+  sort(field, direction) {
+    const {sortable, sortType} = this.headerConfig.find(config => config.id === field);
+
+    if (!sortable) return;
     
-    if (!sortable) {
-      return;
+    const d = direction === 'asc' ? 1 : -1;
+
+    if (sortType === 'string') {
+      this.data.sort((a, b) => d * a[field].localeCompare(b[field], ["ru", "eng"], { caseFirst: 'upper' }));
+      this.setDataOrder(field, direction);
+    } else if (sortType === 'number') {
+      this.data.sort((a, b) => d * a[field] - d * b[field]);
+      this.setDataOrder(field, direction);
     }
 
-    const direction = order === 'asc' ? 1 : -1;
+    this.update(this.data);
+  }
 
-    this.data = this.data.sort((a, b) => {
-      if (sortType === 'number') {
-        return direction * (a[field] - b[field]);
-      } 
-      return direction * a[field].localeCompare(b[field], ['ru', 'en'], { caseFirst: 'upper' });
-    });
-    
-    this.subElements.body.innerHTML = this.createItemsTemplate(this.data);
+  setDataOrder(field, direction) {
+    const prevElements = this.element.querySelectorAll(`.sortable-table__cell[data-order][data-sortable="true"]`);
+    const currentElement = this.element.querySelector(`.sortable-table__cell[data-id=${field}][data-sortable="true"]`);
+
+    prevElements.forEach(element => element.dataset.order = '');
+
+    if (!currentElement) return;
+
+    currentElement.append(this.arrowElement);
+    currentElement.dataset.order = direction;
+  }
+
+  update(newData) {
+    this.data = newData;
+    this.element.querySelector('[data-element="body"]').innerHTML = this.createBodyTemplate(this.data);
+  }
+
+  remove() {
+    this.element.remove();
   }
 
   destroy() {
-    if (this.element) {
-      this.element.remove();
-    }
+    this.remove();
   }
 }
